@@ -11,10 +11,12 @@ import com.example.spring_member.service.MemberService;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import jakarta.validation.Valid;
 
 @RestController
 public class MemberController {
@@ -24,7 +26,7 @@ public class MemberController {
         this.memberService = memberService;
     }
     @PostMapping("/members")
-        public void join(@RequestBody MemberDto dto) {
+        public void join(@Valid @RequestBody MemberDto dto) {
             Member member = new Member();
             member.setName(dto.getName());
             memberService.join(member);
@@ -36,12 +38,13 @@ public class MemberController {
 
     }
     @GetMapping("/members/{id}")
-    public Member findByID(@PathVariable Long id){
-        return memberService.findById(id);
+    public ResponseEntity<Member> findByID(@PathVariable Long id){
+        Member member = memberService.findById(id);
+        return ResponseEntity.ok(member);
 
     }
     @PutMapping("/members/{id}")
-    public Member update(@PathVariable Long id, @RequestBody MemberDto dto){
+    public Member update(@PathVariable Long id, @Valid @RequestBody MemberDto dto){
          memberService.update(id, dto);
          return memberService.findById(id);
     }
