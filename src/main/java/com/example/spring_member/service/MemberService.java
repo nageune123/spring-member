@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.spring_member.dto.MemberDto;
 import com.example.spring_member.entity.Member;
+import com.example.spring_member.exception.MemberNotFoundException;
 import com.example.spring_member.repository.MemberRepository;
 
 import jakarta.transaction.Transactional;
@@ -27,7 +28,8 @@ public class MemberService {
 
         }
         public Member findById(Long id){
-           return memberRepository.findById(id).orElseThrow();
+           return memberRepository.findById(id)
+           .orElseThrow(MemberNotFoundException::new);
            
         }
         @Transactional
