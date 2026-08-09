@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.spring_member.dto.MemberDto;
+import com.example.spring_member.dto.MemberResponseDto;
 import com.example.spring_member.entity.Member;
 import com.example.spring_member.service.MemberService;
 
@@ -26,31 +27,44 @@ public class MemberController {
         this.memberService = memberService;
     }
     @PostMapping("/members")
-        public void join(@Valid @RequestBody MemberDto dto) {
+        public ResponseEntity<MemberResponseDto> join(@Valid @RequestBody MemberDto dto) {
             Member member = new Member();
             member.setName(dto.getName());
-            memberService.join(member);
+            MemberResponseDto responseDto =  memberService.join(member);
+            return ResponseEntity.status(202).body(responseDto);
             
 }   
     @GetMapping("/members")
-    public List<Member> findAll(){
+    public List<MemberResponseDto> findAll(){
+
         return memberService.findAll();
 
     }
     @GetMapping("/members/{id}")
-    public ResponseEntity<Member> findByID(@PathVariable Long id){
-        Member member = memberService.findById(id);
-        return ResponseEntity.ok(member);
+    public ResponseEntity<MemberResponseDto> findById(@PathVariable Long id){
+            MemberResponseDto responseDto = memberService.findById(id);
+        return ResponseEntity.ok(responseDto);
 
     }
-    @PutMapping("/members/{id}")
-    public Member update(@PathVariable Long id, @Valid @RequestBody MemberDto dto){
-         memberService.update(id, dto);
-         return memberService.findById(id);
-    }
+
+ @PutMapping("/members/{id}")
+public ResponseEntity<MemberResponseDto> update(
+        @PathVariable Long id,
+        @Valid @RequestBody MemberDto dto) {
+
+    memberService.update(id, dto);
+
+    MemberResponseDto responseDto =
+            memberService.findById(id);
+
+    return ResponseEntity.ok(responseDto);
+}
+    
+    
     @DeleteMapping("/members/{id}")
-    public void delete(@PathVariable Long id){
+    public ResponseEntity<Void> delete(@PathVariable Long id){
         memberService.delete(id);
+        return ResponseEntity.noContent().build();
         
     }
 
