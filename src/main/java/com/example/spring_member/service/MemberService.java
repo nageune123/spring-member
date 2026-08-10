@@ -12,50 +12,44 @@ import com.example.spring_member.exception.MemberNotFoundException;
 import com.example.spring_member.repository.MemberRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
-public class MemberService {
+@RequiredArgsConstructor
+public class MemberService {    
 
         private final MemberRepository memberRepository;
 
-        public MemberService(MemberRepository memberRepository){
-            this.memberRepository = memberRepository;
-        }
-
-        public MemberResponseDto join(Member member){
+        public MemberResponseDto join(MemberDto dto){
+            Member member = Member.from(dto);
+            
             Member savedMember =memberRepository.save(member);
-            return new MemberResponseDto(savedMember.getId(), savedMember.getName());
+            return MemberResponseDto.from(savedMember);
         }
-
-
-
         public List<MemberResponseDto> findAll(){
             
             List<Member> members= memberRepository.findAll();
 
-            return members.stream().map( member ->
-                 new MemberResponseDto(member.getId(), member.getName()) )
+            return members.stream().map( MemberResponseDto :: from )
                  .toList();
-
         }
         public MemberResponseDto findById(Long id){
             Member member  =
              memberRepository.findById(id).orElseThrow(MemberNotFoundException::new);
-
-            
-            return new MemberResponseDto(member.getId(),member.getName() );
-           
-           
+           return MemberResponseDto.from(member);       
         }
 
 
         @Transactional
-        public void update(Long id, MemberDto dto){
+        public MemberResponseDto update(Long id, MemberDto dto){
+
              Member member = memberRepository.findById(id)
             .orElseThrow(MemberNotFoundException::new);
 
             member.setName(dto.getName());
+            return MemberResponseDto.from(member);       
         }
+
         @Transactional
         public void delete(Long id){
                Member member = memberRepository.findById(id)

@@ -10,6 +10,7 @@ import com.example.spring_member.dto.MemberResponseDto;
 import com.example.spring_member.entity.Member;
 import com.example.spring_member.service.MemberService;
 
+
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -18,20 +19,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor    
 @RestController
 public class MemberController {
     private final MemberService memberService;  
-    public MemberController(MemberService memberService){
-
-        this.memberService = memberService;
-    }
+   
     @PostMapping("/members")
         public ResponseEntity<MemberResponseDto> join(@Valid @RequestBody MemberDto dto) {
-            Member member = new Member();
-            member.setName(dto.getName());
-            MemberResponseDto responseDto =  memberService.join(member);
-            return ResponseEntity.status(202).body(responseDto);
+           
+            MemberResponseDto responseDto =  memberService.join(dto);
+            return ResponseEntity.status(201).body(responseDto);
             
 }   
     @GetMapping("/members")
@@ -52,11 +51,8 @@ public ResponseEntity<MemberResponseDto> update(
         @PathVariable Long id,
         @Valid @RequestBody MemberDto dto) {
 
-    memberService.update(id, dto);
-
     MemberResponseDto responseDto =
-            memberService.findById(id);
-
+           memberService.update(id, dto);
     return ResponseEntity.ok(responseDto);
 }
     
