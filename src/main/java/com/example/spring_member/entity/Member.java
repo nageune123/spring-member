@@ -25,8 +25,8 @@ public class Member {
                 this.name = name ; 
         }
         public static Member from(MemberDto dto){
-                Member member = new Member();
-                member.setName(dto.getName());
-                return member;
+                Member member = new Member(); // 새로운 member 
+                member.setName(dto.getName()); //  dto의 값을 복사 
+                return member;   // 새로운 member로 반환 
         }
 }
