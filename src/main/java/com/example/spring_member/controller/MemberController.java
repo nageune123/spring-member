@@ -63,6 +63,12 @@ public ResponseEntity<MemberResponseDto> update(
         return ResponseEntity.noContent().build();
         
     }
+@GetMapping("/docker-test")
+public String dockerTest() {
+    return "Docker Build Test!";
+}
+
+
 
  }
     
