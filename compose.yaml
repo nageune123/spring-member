@@ -26,6 +26,14 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/docker-test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: 512m
+    cpus: 1.0
 
 volumes:
   mysql-data:
