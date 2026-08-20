@@ -65,7 +65,7 @@ public ResponseEntity<MemberResponseDto> update(
     }
 @GetMapping("/docker-test")
 public String dockerTest() {
-    return "Docker Build Test!";
+    return "Docker Build Test v2!";
 }
 
 
