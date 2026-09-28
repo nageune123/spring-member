@@ -31,6 +31,7 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
+	implementation 'software.amazon.awssdk:s3:2.40.11'
 }
 
 tasks.named('test') {
