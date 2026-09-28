@@ -110,3 +110,31 @@ AWS 환경에서 Spring Boot 애플리케이션을 Docker 기반으로 배포하
 - Target Group Health Check `Healthy` 확인
 - Spring Boot와 Private RDS MySQL 연동
 - CloudWatch Logs를 통한 애플리케이션 실행 상태 확인
+
+### Application Deployment Result
+
+ALB를 통해 Private Subnet의 ECS Fargate에서 실행 중인
+Spring Boot 애플리케이션에 정상적으로 접근되는 것을 확인했습니다.
+
+![ALB Application Success](docs/images/alb-success.png)
+
+### Target Group Health Check
+
+ALB Target Group에 ECS Fargate Task가 등록되고,
+Health Check 결과 `Healthy` 상태인 것을 확인했습니다.
+
+![Target Group Healthy](docs/images/target-group-healthy.png)
+
+### ECS Fargate Task
+
+ECS Service에서 Fargate Task가 정상적으로 `Running` 상태로
+유지되는 것을 확인했습니다.
+
+![ECS Task Running](docs/images/ecs-task-running.png)
+
+### CloudWatch Application Logs
+
+CloudWatch Logs를 통해 ECS Fargate 컨테이너의 로그를 확인하고,
+Spring Boot 애플리케이션이 정상적으로 시작된 것을 확인했습니다.
+
+![CloudWatch Spring Boot Logs](docs/images/cloudwatch-spring-started.png)
