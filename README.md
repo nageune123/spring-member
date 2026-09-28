@@ -3,6 +3,15 @@
 Spring Boot 애플리케이션을 Docker 이미지로 빌드하고,
 AWS ECR과 ECS Fargate를 이용하여 배포한 인프라 프로젝트입니다.
 
+## Tech Stack
+
+- **Cloud**: AWS VPC, ALB, ECS Fargate, ECR, RDS, CloudWatch
+- **Backend**: Java, Spring Boot, Spring Data JPA
+- **Database**: MySQL
+- **Container**: Docker
+- **Build**: Gradle
+- **Version Control**: Git, GitHub
+
 ## Architecture
 
 ![AWS Architecture](docs/images/aws-architecture.png)
@@ -10,8 +19,12 @@ AWS ECR과 ECS Fargate를 이용하여 배포한 인프라 프로젝트입니다
 ## AWS Infrastructure
 
 - VPC: `10.0.0.0/16`
-- Public Subnet: 2개 (ap-northeast-2a, ap-northeast-2c)
-- Private Subnet: 2개 (ap-northeast-2a, ap-northeast-2c)
+- Public Subnet
+  - `10.0.1.0/24` (ap-northeast-2a)
+  - `10.0.2.0/24` (ap-northeast-2c)
+- Private Subnet
+  - `10.0.11.0/24` (ap-northeast-2a)
+  - `10.0.12.0/24` (ap-northeast-2c)
 - Internet Gateway: Public Subnet 인터넷 연결
 - NAT Gateway: Private Subnet의 아웃바운드 인터넷 통신
 - ALB: Public Subnet에 배치
@@ -24,6 +37,7 @@ AWS ECR과 ECS Fargate를 이용하여 배포한 인프라 프로젝트입니다
 
 외부에서 애플리케이션 컨테이너와 데이터베이스에 직접 접근하지 못하도록
 ECS Fargate와 RDS를 Private 영역에 구성했습니다.
+인터넷 사용자는 ALB에만 접근할 수 있으며, ECS와 RDS는 Security Group 간 참조를 통해 필요한 트래픽만 허용하도록 구성했습니다.
 
 - ALB SG: 인터넷에서 HTTP 80 허용
 - ECS SG: ALB SG에서 오는 8080 포트만 허용
@@ -78,26 +92,45 @@ Spring Boot 애플리케이션의 로그를 확인했습니다.
 
 ### Target Group Health Check 문제
 
-ECS Fargate 배포 과정에서 Target Group의 상태가
-`Unhealthy`로 표시되는 문제가 발생했습니다.
+**문제**
 
-Health Check 경로와 애플리케이션의 실제 응답 경로를 확인하고,
-Health Check 경로를 `/docker-test`로 설정했습니다.
+- ECS Fargate 배포 후 Target Group에 등록된 Task가 `Unhealthy` 상태로 표시됨
+- ALB를 통한 애플리케이션 접근이 정상적으로 이루어지지 않음
 
-이후 HTTP 200 응답을 확인하고 Target 상태가 `Healthy`로
-변경되어 ALB를 통한 애플리케이션 접속에 성공했습니다.
+**원인**
+
+- Target Group의 Health Check 경로와 Spring Boot 애플리케이션의 실제 응답 경로가 일치하지 않음
+
+**해결**
+
+- Spring Boot 애플리케이션에서 HTTP 200 응답이 반환되는 경로를 확인
+- Target Group의 Health Check 경로를 `/docker-test`로 변경
+
+**결과**
+
+- Target 상태가 `Unhealthy` → `Healthy`로 변경
+- ALB를 통해 Private Subnet의 ECS Fargate 애플리케이션에 정상 접근 확인
 
 ### RDS 연결 문제
 
-Private RDS MySQL 연결 과정에서 데이터베이스에
-접속되지 않는 문제가 발생했습니다.
+**문제**
 
-RDS Security Group의 Inbound Rule을 확인하고,
-MySQL 3306 포트의 Source를 애플리케이션이 사용하는
-Security Group으로 설정하여 연결 문제를 해결했습니다.
+- Private Subnet에 구성한 RDS MySQL에 애플리케이션에서 연결되지 않는 문제 발생
 
-이후 Spring Boot에서 RDS 연결에 성공했고,
-JPA를 통해 테이블이 정상 생성되는 것을 확인했습니다.
+**원인**
+
+- RDS Security Group의 Inbound Rule에서 MySQL `3306` 포트에 대한 접근 허용 설정이 올바르게 구성되지 않음
+
+**해결**
+
+- RDS Security Group의 Inbound Rule 확인
+- MySQL `3306` 포트의 Source를 ECS Task가 사용하는 Security Group으로 설정
+- RDS의 Public Access는 비활성화 상태로 유지
+
+**결과**
+
+- ECS Fargate의 Spring Boot 애플리케이션에서 RDS MySQL 연결 성공
+- Spring Data JPA를 통해 `member`, `member_seq` 테이블이 생성되는 것을 확인
 
 ## Result
 
@@ -138,3 +171,13 @@ CloudWatch Logs를 통해 ECS Fargate 컨테이너의 로그를 확인하고,
 Spring Boot 애플리케이션이 정상적으로 시작된 것을 확인했습니다.
 
 ![CloudWatch Spring Boot Logs](docs/images/cloudwatch-spring-started.png)
+
+## Future Improvements
+
+실제 운영 환경을 고려하여 다음 항목을 추가로 개선할 수 있습니다.
+
+- HTTPS 적용 및 ACM 인증서를 이용한 TLS 구성
+- DB 비밀번호를 AWS Secrets Manager 또는 Parameter Store를 이용하여 안전하게 관리
+- ECS Service Auto Scaling을 이용한 트래픽 기반 Task 자동 확장
+- RDS Multi-AZ 구성을 통한 데이터베이스 가용성 향상
+- CloudWatch Alarm을 이용한 장애 및 리소스 사용량 모니터링 강화
