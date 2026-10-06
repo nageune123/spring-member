@@ -3,6 +3,9 @@ name: Spring Boot CI
 on:
   push:
     branches: [ "main" ]
+permissions:
+  contents: read
+  packages: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,5 +25,15 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build Docker image
-        run: docker build -t spring-member-app:latest .
+        run: docker build -t ghcr.io/nageune123/spring-member:latest .
+
+      - name: Push Docker image to GHCR
+        run: docker push ghcr.io/nageune123/spring-member:latest
