@@ -33,7 +33,18 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker image
-        run: docker build -t ghcr.io/nageune123/spring-member:latest .
+        run: docker build -t ghcr.io/nageune123/spring-member:${{ github.sha }} -t ghcr.io/nageune123/spring-member:latest .
 
       - name: Push Docker image to GHCR
-        run: docker push ghcr.io/nageune123/spring-member:latest
+        run: |
+          docker push ghcr.io/nageune123/spring-member:${{ github.sha }}
+          docker push ghcr.io/nageune123/spring-member:latest
+  deploy:
+    needs: build
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl set image deployment/spring-member-deployment spring-member=ghcr.io/nageune123/spring-member:${{ github.sha }}
+          kubectl rollout status deployment/spring-member-deployment --timeout=180s
